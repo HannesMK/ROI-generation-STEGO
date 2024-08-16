@@ -1,0 +1,17 @@
+--extra-index-url https://download.pytorch.org/whl/cu117
+azureml-core
+hydra-core
+matplotlib
+numpy
+omegaconf
+opencv-python
+git+https://github.com/lucasb-eyer/pydensecrf.git
+pytorch-lightning
+scikit-image
+scipy
+seaborn
+tensorboard
+torch
+torchvision
+tqdm
+wget

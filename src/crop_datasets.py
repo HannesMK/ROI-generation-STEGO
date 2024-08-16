@@ -6,7 +6,8 @@ import torch
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning.utilities.seed import seed_everything
 from torch.utils.data import DataLoader
-from torchvision.transforms.functional import five_crop, _get_image_size, crop
+# from torchvision.transforms.functional import five_crop, _get_image_size, crop
+from torchvision.transforms.functional import five_crop, get_image_size, crop
 from tqdm import tqdm
 from torch.utils.data import Dataset
 
@@ -38,7 +39,8 @@ def _random_crops(img, size, seed, n):
     if len(size) != 2:
         raise ValueError("Please provide only two dimensions (h, w) for size.")
 
-    image_width, image_height = _get_image_size(img)
+    # image_width, image_height = _get_image_size(img)
+    image_width, image_height = get_image_size(img)
     crop_height, crop_width = size
     if crop_width > image_width or crop_height > image_height:
         msg = "Requested crop size {} is bigger than input size {}"
@@ -76,8 +78,16 @@ class RandomCropComputer(Dataset):
     def __init__(self, cfg, dataset_name, img_set, crop_type, crop_ratio):
         self.pytorch_data_dir = cfg.pytorch_data_dir
         self.crop_ratio = crop_ratio
+        
+        if dataset_name == "directory":
+            actual_dataset_name = cfg.dir_dataset_name
+        else:
+            actual_dataset_name = dataset_name
+        
         self.save_dir = join(
-            cfg.pytorch_data_dir, "cropped", "{}_{}_crop_{}".format(dataset_name, crop_type, crop_ratio))
+            cfg.pytorch_data_dir, "cropped", "{}_{}_crop_{}".format(actual_dataset_name, crop_type, crop_ratio)
+        )
+        
         self.img_set = img_set
         self.dataset_name = dataset_name
         self.cfg = cfg
@@ -137,7 +147,12 @@ def my_app(cfg: DictConfig) -> None:
     # crop_types = ["five","random"]
     # crop_ratios = [.5, .7]
 
-    dataset_names = ["cityscapes"]
+    # dataset_names = ["cityscapes"]
+    # img_sets = ["train", "val"]
+    # crop_types = ["five"]
+    # crop_ratios = [.5]
+    
+    dataset_names = ["directory"]
     img_sets = ["train", "val"]
     crop_types = ["five"]
     crop_ratios = [.5]

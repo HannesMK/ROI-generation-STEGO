@@ -16,7 +16,12 @@ def get_feats(model, loader):
     all_feats = []
     for pack in tqdm(loader):
         img = pack["img"]
-        feats = F.normalize(model.forward(img.cuda()).mean([2, 3]), dim=1)
+        
+        if torch.cuda.is_available():
+            feats = F.normalize(model.forward(img.cuda()).mean([2, 3]), dim=1)
+        else:
+            feats = F.normalize(model.forward(img).mean([2, 3]), dim=1)
+            
         all_feats.append(feats.to("cpu", non_blocking=True))
     return torch.cat(all_feats, dim=0).contiguous()
 
@@ -37,22 +42,26 @@ def my_app(cfg: DictConfig) -> None:
     print(cfg.output_root)
 
     image_sets = ["val", "train"]
-    dataset_names = ["cocostuff27", "cityscapes", "potsdam"]
-    crop_types = ["five", None]
+    # dataset_names = ["cocostuff27", "cityscapes", "potsdam"]
+    # crop_types = ["five", None]
 
     # Uncomment these lines to run on custom datasets
-    #dataset_names = ["directory"]
-    #crop_types = [None]
+    dataset_names = ["directory"]
+    crop_types = ["five"]
 
-    res = 224
+    res = cfg.res
     n_batches = 16
 
     if cfg.arch == "dino":
         from modules import DinoFeaturizer, LambdaLayer
+        
         no_ap_model = torch.nn.Sequential(
             DinoFeaturizer(20, cfg),  # dim doesent matter
             LambdaLayer(lambda p: p[0]),
-        ).cuda()
+        )
+        
+        if torch.cuda.is_available():
+            no_ap_model = no_ap_model.cuda()
     else:
         cut_model = load_model(cfg.model_type, join(cfg.output_root, "data")).cuda()
         no_ap_model = nn.Sequential(*list(cut_model.children())[:-1]).cuda()
@@ -78,7 +87,7 @@ def my_app(cfg: DictConfig) -> None:
                         cfg=cfg,
                     )
 
-                    loader = DataLoader(dataset, 256, shuffle=False, num_workers=cfg.num_workers, pin_memory=False)
+                    loader = DataLoader(dataset, 8, shuffle=False, num_workers=cfg.num_workers, pin_memory=False)
 
                     with torch.no_grad():
                         normed_feats = get_feats(par_model, loader)

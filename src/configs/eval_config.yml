@@ -1,19 +1,26 @@
-output_root: '../'
-pytorch_data_dir: '/datadrive/pytorch-data/'
-experiment_name: "cocostuff"
+output_root: "."
+pytorch_data_dir: "data"
+experiment_name: "plunger"  # knife, water_bottle, or plunger
 res: 320
-batch_size: 8
-num_workers: 24
-run_picie: True
+batch_size: 2
+num_workers: 8
+run_picie: False
 run_crf: True
 run_prediction: True
 dark_mode: True
 use_ddp: False
 
+evaluate_all_frames: True
+show_images: False
+
 model_paths:
-  - "../saved_models/cocostuff27_vit_base_5.ckpt"
+  # - "../saved_models/cocostuff27_vit_base_5.ckpt"
   #- "../saved_models/cityscapes_vit_base_1.ckpt"
   #- "../saved_models/potsdam_test.ckpt"
+
+  # - "./models/knife.ckpt"
+  # - "./models/water_bottle.ckpt"
+  - "./models/plunger.ckpt"
 
 hydra:
   run:

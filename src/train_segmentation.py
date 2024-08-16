@@ -268,11 +268,14 @@ class LitUnsupervisedSegmenter(pl.LightningModule):
             cluster_preds = cluster_preds.argmax(1)
             self.cluster_metrics.update(cluster_preds, label)
 
+            # If there are less images than the amount specified in the configuration file, only look for that many images
+            number_of_images = min([len(img), self.cfg.n_images])
+
             return {
-                'img': img[:self.cfg.n_images].detach().cpu(),
-                'linear_preds': linear_preds[:self.cfg.n_images].detach().cpu(),
-                "cluster_preds": cluster_preds[:self.cfg.n_images].detach().cpu(),
-                "label": label[:self.cfg.n_images].detach().cpu()}
+                'img': img[:number_of_images].detach().cpu(),
+                'linear_preds': linear_preds[:number_of_images].detach().cpu(),
+                "cluster_preds": cluster_preds[:number_of_images].detach().cpu(),
+                "label": label[:number_of_images].detach().cpu()}
 
     def validation_epoch_end(self, outputs) -> None:
         super().validation_epoch_end(outputs)
@@ -287,8 +290,13 @@ class LitUnsupervisedSegmenter(pl.LightningModule):
                 output_num = random.randint(0, len(outputs) -1)
                 output = {k: v.detach().cpu() for k, v in outputs[output_num].items()}
 
-                fig, ax = plt.subplots(4, self.cfg.n_images, figsize=(self.cfg.n_images * 3, 4 * 3))
-                for i in range(self.cfg.n_images):
+                # If there are less images than the amount specified in the configuration file, only look for that many images
+                number_of_images = min([len(output["img"]), self.cfg.n_images])
+
+                # Don't squeeze axes dimensions so that indexing still works with only one image
+                fig, ax = plt.subplots(4, number_of_images, figsize=(number_of_images * 3, 4 * 3), squeeze=False)
+                
+                for i in range(number_of_images):
                     ax[0, i].imshow(prep_for_plot(output["img"][i]))
                     ax[1, i].imshow(self.label_cmap[output["label"][i]])
                     ax[2, i].imshow(self.label_cmap[output["linear_preds"][i]])
@@ -383,7 +391,7 @@ class LitUnsupervisedSegmenter(pl.LightningModule):
         return net_optim, linear_probe_optim, cluster_probe_optim
 
 
-@hydra.main(config_path="configs", config_name="train_config.yml")
+@hydra.main(version_base="1.1", config_path="configs", config_name="train_config.yml")
 def my_app(cfg: DictConfig) -> None:
     OmegaConf.set_struct(cfg, False)
     print(OmegaConf.to_yaml(cfg))
@@ -473,28 +481,27 @@ def my_app(cfg: DictConfig) -> None:
             gpu_args.pop("val_check_interval")
 
     else:
-        gpu_args = dict(gpus=-1, accelerator='ddp', val_check_interval=cfg.val_freq)
-        # gpu_args = dict(gpus=1, accelerator='ddp', val_check_interval=cfg.val_freq)
-
+        gpu_args = dict(devices="auto", accelerator="auto", val_check_interval=cfg.val_freq)
+        
         if gpu_args["val_check_interval"] > len(train_loader) // 4:
             gpu_args.pop("val_check_interval")
 
     trainer = Trainer(
         log_every_n_steps=cfg.scalar_log_freq,
         logger=tb_logger,
+        max_epochs=cfg.max_epochs,
         max_steps=cfg.max_steps,
         callbacks=[
             ModelCheckpoint(
                 dirpath=join(checkpoint_dir, name),
-                every_n_train_steps=400,
-                save_top_k=2,
-                monitor="test/cluster/mIoU",
-                mode="max",
+                every_n_epochs=cfg.save_every_n_epochs,
+                save_top_k=-1,
             )
         ],
         **gpu_args
     )
-    trainer.fit(model, train_loader, val_loader)
+
+    trainer.fit(model, train_loader, val_loader, ckpt_path=cfg.checkpoint_path)
 
 
 if __name__ == "__main__":

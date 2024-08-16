@@ -1,27 +1,32 @@
-output_root: '../'
-pytorch_data_dir: '/datadrive/pytorch-data/'
-experiment_name: "exp1"
-log_dir: "cocostuff27"
-azureml_logging: True
+output_root: "."
+pytorch_data_dir: "data"
+experiment_name: "plunger"  # knife, water_bottle, or plunger
+log_dir: "plunger"  # knife, water_bottle, or plunger
+azureml_logging: False
 submitting_to_aml: False
 
 # Loader params
-num_workers: 24
-max_steps: 5000
-batch_size: 16
+num_workers: 0
+max_epochs: 6  # -1 for infinite epochs
+max_steps: -1  # -1 for infinite steps
+batch_size: 1  # best batch sizes are 3 for knife, 3 for water bottle, and 1 for plunger
+save_every_n_epochs: 1
 
 num_neighbors: 7
-dataset_name: "cocostuff27"
+dataset_name: "directory"
 
 # Used if dataset_name is "directory"
-dir_dataset_name: ~
-dir_dataset_n_classes: 5
+dir_dataset_name: "plunger"  # knife, water_bottle, or plunger
+dir_dataset_n_classes: 50
 
 has_labels: False
 crop_type: "five"
 crop_ratio: .5
-res: 224
+res: 232  # 168 for knife, 184 for water bottle, or 232 for plunger
 loader_crop_type: "center"
+
+# Path to a model checkpoint to continue training from
+checkpoint_path: ~
 
 # Model Params
 extra_clusters: 0

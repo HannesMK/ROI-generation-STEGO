@@ -1,5 +1,8 @@
-models/*
-data/*
-src/.env
-results/predictions/*
-src/iarpa
+__pycache__/
+
+.venv
+
+checkpoints
+logs
+
+*.log

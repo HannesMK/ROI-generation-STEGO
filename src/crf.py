@@ -14,8 +14,8 @@ MAX_ITER = 10
 POS_W = 3
 POS_XY_STD = 1
 Bi_W = 4
-Bi_XY_STD = 67
-Bi_RGB_STD = 3
+Bi_XY_STD = 15
+Bi_RGB_STD = 0.05
 BGR_MEAN = np.array([104.008, 116.669, 122.675])
 
 
