@@ -3,7 +3,7 @@
 
 This repository contains the code used to generate the critical-object regions of interest for the following paper:
 
-Körner, H. M., Faul, F., & Nuthmann, A. (in press). Is a knife the same as a plunger? Comparing the attentional effects of weapons and non-threatening unusual objects in dynamic scenes. *Cognitive Research: Principles and Implications*.
+Körner, H. M., Faul, F., & Nuthmann, A. (2024). Is a knife the same as a plunger? Comparing the attentional effects of weapons and non-threatening unusual objects in dynamic scenes. *Cognitive Research: Principles and Implications, 9*, Article 66. https://doi.org/10.1186/s41235-024-00579-1
 
 The goal of this project is to automatically generate masks that closely fit and follow arbitrary moving objects in dynamic scenes (i.e., videos).
 
